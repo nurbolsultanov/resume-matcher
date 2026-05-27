@@ -69,3 +69,32 @@ RESUME:
 {resume_text}
 
 Return ONLY the JSON. No explanation. No markdown. No backticks."""
+
+def build_comparison_prompt(job_description: str, resumes: list[dict]) -> str:
+    resumes_text = ""
+    for i, r in enumerate(resumes, 1):
+        resumes_text += f"\nRESUME {i} ({r['name']}):\n{r['text']}\n"
+
+    return f"""You are an expert ATS specialist and resume coach.
+
+Compare these {len(resumes)} resumes against the job description.
+Return ONLY a JSON object with this exact structure:
+{{
+    "resumes": [
+        {{
+            "name": "<resume filename>",
+            "match_score": <integer 0-100>,
+            "missing_keywords": [<3 strings>],
+            "quantification_score": <integer 0-100>,
+            "strengths": "<one sentence>",
+            "weaknesses": "<one sentence>"
+        }}
+    ],
+    "verdict": "<which resume to use and why - 2 sentences>",
+    "winner": "<exact filename of best resume>"
+}}
+
+JOB DESCRIPTION:
+{job_description}
+{resumes_text}
+Return ONLY the JSON. No explanation. No markdown. No backticks."""
