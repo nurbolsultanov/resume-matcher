@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from dotenv import load_dotenv
-from prompts import build_matching_prompt
+from prompts import build_matching_prompt, build_section_analysis_prompt
 
 load_dotenv()
 
@@ -35,6 +35,20 @@ def analyze_match(job_description: str, resume_text: str) -> dict:
     message = client.messages.create(
         model="claude-opus-4-5",
         max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    raw = message.content[0].text.strip()
+    result = json.loads(raw)
+    return result
+
+def analyze_sections(job_description: str, resume_text: str) -> dict:
+    relevant_resume = get_relevant_resume_chunks(resume_text, job_description)
+    prompt = build_section_analysis_prompt(job_description, relevant_resume)
+
+    message = client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )
 
